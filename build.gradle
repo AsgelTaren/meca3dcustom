@@ -1,0 +1,26 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jogamp.jogl:jogl-all-main:2.3.2'
+    implementation 'org.jogamp.gluegen:gluegen-rt-main:2.3.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+}
+
+application {
+    mainClass = 'meca3dcustom.app.Main'
+    applicationDefaultJvmArgs =["--add-exports=java.base/java.lang=ALL-UNNAMED","--add-exports=java.desktop/sun.awt=ALL-UNNAMED","--add-exports=java.desktop/sun.java2d=ALL-UNNAMED"]
+}
+
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
+}
