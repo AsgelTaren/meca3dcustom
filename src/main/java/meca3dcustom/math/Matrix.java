@@ -31,6 +31,14 @@ public class Matrix {
 		return result;
 	}
 
+	public void directAdd(Matrix mat) {
+		for (int i = 0; i < getRows(); i++) {
+			for (int j = 0; j < getCols(); j++) {
+				this.data[i][j] += mat.data[i][j];
+			}
+		}
+	}
+
 	public Matrix(Vec3D vec) {
 		this.data = new double[3][1];
 		data[0][0] = vec.x;
@@ -167,6 +175,15 @@ public class Matrix {
 				{ -y * y - z * z, x * y, x * z }, //
 				{ y * x, -x * x - z * z, y * z }, //
 				{ z * x, z * y, -x * x - y * y } //
+		});
+	}
+
+	public static final Matrix vecProd(Vec3D vec) {
+		double x = vec.x, y = vec.y, z = vec.z;
+		return new Matrix(new double[][] { //
+				{ 0, -z, y }, //
+				{ z, 0, -x }, //
+				{ -y, x, 0 } //
 		});
 	}
 

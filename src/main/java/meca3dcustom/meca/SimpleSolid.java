@@ -17,13 +17,15 @@ public class SimpleSolid extends Solid {
 
 	private Vec3D inertiaCenter;
 	private Matrix inertiaMatrix;
+	private double mass;
 
 	private DoubleBuffer verticesBuff, colorsBuff;
 	private int size;
 
-	public SimpleSolid(Vec3D inertiaCenter, Matrix inertiaMatrix, Vec3D[] vertices, Color[] colors) {
+	public SimpleSolid(Vec3D inertiaCenter, Matrix inertiaMatrix, double mass, Vec3D[] vertices, Color[] colors) {
 		this.inertiaCenter = inertiaCenter;
 		this.inertiaMatrix = inertiaMatrix;
+		this.mass = mass;
 		this.size = vertices.length;
 
 		double[] temp = new double[vertices.length * 3];
@@ -49,10 +51,11 @@ public class SimpleSolid extends Solid {
 
 	}
 
-	public SimpleSolid(Vec3D inertiaCenter, Matrix inertiaMatrix, List<? extends Vec3D> vertices,
+	public SimpleSolid(Vec3D inertiaCenter, Matrix inertiaMatrix, double mass, List<? extends Vec3D> vertices,
 			List<? extends Color> colors) {
 		this.inertiaCenter = inertiaCenter;
 		this.inertiaMatrix = inertiaMatrix;
+		this.mass = mass;
 		this.size = vertices.size();
 
 		double[] temp = new double[vertices.size() * 3];
@@ -135,11 +138,11 @@ public class SimpleSolid extends Solid {
 
 		Matrix inertiaMatrix = Matrix.diag(ly * ly + lz * lz, lx * lx + lz * lz, lx * lx + ly * ly).scale(mass / 12.0);
 
-		return new SimpleSolid(new Vec3D(0, 0, 0), inertiaMatrix, vertices, colors);
+		return new SimpleSolid(new Vec3D(0, 0, 0), inertiaMatrix, mass, vertices, colors);
 	}
 
-	public static final SimpleSolid getArc(double r1, double r2, double a, double theta1, double theta2, int subdiv,
-			Color c) {
+	public static final SimpleSolid getArc(double r1, double r2, double a, double theta1, double theta2, double mass,
+			int subdiv, Color c) {
 		Vec3D[] points = new Vec3D[(subdiv + 1) * 4];
 		for (int i = 0; i <= subdiv; i++) {
 			double cos = Math.cos(theta1 + (theta2 - theta1) / subdiv * i);
@@ -167,7 +170,7 @@ public class SimpleSolid extends Solid {
 				points[4 * subdiv + 3]));
 		colors.add(c);
 
-		return new SimpleSolid(new Vec3D(0, 0, 0), new Matrix(3, 3), vertices, colors);
+		return new SimpleSolid(new Vec3D(0, 0, 0), new Matrix(3, 3), mass, vertices, colors);
 	}
 
 	public static final Color scale(Color c, double scale) {
@@ -177,7 +180,7 @@ public class SimpleSolid extends Solid {
 
 	@Override
 	public double getMass() {
-		return 0;
+		return mass;
 	}
 
 	@Override
