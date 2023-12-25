@@ -5,6 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+
 import meca3dcustom.math.Matrix;
 import meca3dcustom.math.Vec3D;
 import meca3dcustom.meca.Link;
@@ -26,6 +30,13 @@ public class Simulation {
 	private Vec3D[] omegas;
 	private Vec3D[] coorTrans;
 	private Matrix[] coorRot;
+
+	// Chart
+	private Matrix[] positionData, speedData;
+	private int index = 0;
+	private int limit = 15000;
+	private XYChart chart;
+	private SwingWrapper<XYChart> wrapper;
 
 	public Simulation(Model model) {
 		this.model = model;
@@ -83,6 +94,8 @@ public class Simulation {
 				rotationIndex[parentToLink[order[i]]] = ro++;
 			}
 		}
+		positionData = new Matrix[limit];
+		speedData = new Matrix[limit];
 
 	}
 
@@ -98,6 +111,9 @@ public class Simulation {
 	}
 
 	public void step() {
+		System.out.println("================================");
+		if (chart != null || limit <= index)
+			return;
 		Matrix k1 = solveFor(position, speed);
 		Matrix k2 = solveFor(position.add(speed.scale(delta * 0.5)), speed.add(k1.scale(delta * 0.5)));
 		Matrix k3 = solveFor(position.add(speed.scale(delta * 0.5)).add(k1.scale(delta * delta * 0.25)),
@@ -105,13 +121,24 @@ public class Simulation {
 		Matrix k4 = solveFor(position.add(speed.scale(delta)).add(k2.scale(delta * delta * 0.5)),
 				speed.add(k3.scale(delta)));
 
-		position = position.add(speed.scale(delta).add(k1.add(k2).add(k3).scale(delta * delta / 6)));
-		speed = speed.add(k1.add(k2.scale(2)).add(k3.scale(2)).add(k4).scale(delta / 6));
+		if (index < limit) {
+			positionData[index] = position;
+			speedData[index++] = speed;
+			if (position.max() > 1000 || speed.max() > 1000) {
+				limit = index - 15;
+				index -= 15;
+				trigger();
+				return;
+			}
+		}
 
-		System.out.println("k1: " + k1);
-		System.out.println("k2: " + k2);
-		System.out.println("k3: " + k3);
-		System.out.println("k4: " + k4);
+		position = position.add(speed.scale(delta)).add((k1.add(k2).add(k3)).scale(delta * delta / 6));
+		speed = speed.add(k1.add(k2.scale(2)).add(k3.scale(2)).add(k4).scale(delta / 6.0));
+
+		System.out.println("k1: \n" + k1);
+		System.out.println("k2: \n" + k2);
+		System.out.println("k3: \n" + k3);
+		System.out.println("k4: \n" + k4);
 		System.out.println("Position: " + position.scale(180 / Math.PI));
 		System.out.println("Speed: " + speed.scale(180 / Math.PI) + "\n");
 		for (Link l : model.getLinkArr()) {
@@ -119,6 +146,34 @@ public class Simulation {
 				rotLink.rot = position.data[translations + rotationIndex[rotLink.getID()]][0] * 180.0 / Math.PI;
 			}
 		}
+	}
+
+	public void trigger() {
+		Thread t = new Thread(() -> {
+			chart = new XYChartBuilder().width(600).height(400).title("Simulation").build();
+			wrapper = new SwingWrapper<XYChart>(chart);
+			double[] time = new double[index];
+			for (int i = 0; i < index; i++) {
+				time[i] = i * delta;
+			}
+			System.out.println(model.getLinks().values());
+			for (Link link : model.getLinks().values()) {
+				if (link instanceof RotationLink rotLink) {
+					double[] rotPos = new double[index];
+					double[] rotSpeed = new double[index];
+					for (int i = 0; i < index; i++) {
+						rotPos[i] = positionData[i].data[translations + rotationIndex[rotLink.getID()]][0] / Math.PI
+								* 180.0;
+						rotSpeed[i] = speedData[i].data[translations + rotationIndex[rotLink.getID()]][0] / Math.PI
+								* 180;
+					}
+					chart.addSeries(rotLink + " pos", time, rotPos);
+					chart.addSeries(rotLink + " speed", time, rotSpeed);
+				}
+			}
+			wrapper.displayChart();
+		});
+		t.start();
 	}
 
 	public Matrix solveFor() {
@@ -182,37 +237,40 @@ public class Simulation {
 			F.directAdd(getKhi(i, position, coorRot).transpose().dot(
 					new Matrix((inertiaCenter.sub(attach).vecProd(new Vec3D(0, 0, -solid.getSolid().getMass() * g))))));
 
-			Matrix phi_C_transposed_mass = getPhi(i, position, coorRot, coorTrans, omegas, attach).transpose()
+			Matrix phi_A_transposed_mass = getPhi(i, position, coorRot, coorTrans, omegas, attach).transpose()
 					.scale(solid.getSolid().getMass());
 
 			Matrix khi_transposed = getKhi(i, position, coorRot).transpose();
 
 			Matrix inertiaMatrix = coorRot[i].dot(solid.getSolid().inertiaMatrix()).dot(coorRot[i].transpose())
-					.sub(Matrix.doubleVecProd(inertiaCenter.sub(attach).scale(solid.getSolid().getMass() * 0)));
+					.sub(Matrix.doubleVecProd(inertiaCenter.sub(attach).scale(solid.getSolid().getMass())));
 
 			Matrix khi_transposed_mass_vecprod = khi_transposed.scale(solid.getSolid().getMass())
 					.dot(Matrix.vecProd(inertiaCenter.sub(attach)));
 
 			// Computing A
 			A.directAdd(
-					phi_C_transposed_mass.dot(getGamma(i, position, speed, coorRot, coorTrans, omegas, inertiaCenter)));
+					phi_A_transposed_mass.dot(getGamma(i, position, speed, coorRot, coorTrans, omegas, inertiaCenter)));
 
 			A.directAdd(khi_transposed.dot(inertiaMatrix).dot(getPsi(i, coorRot, omegas)));
 
 			A.directAdd(
 					khi_transposed_mass_vecprod.dot(getGamma(i, position, speed, coorRot, coorTrans, omegas, attach)));
+
 			// Computing B
-			B.directAdd(phi_C_transposed_mass
+			B.directAdd(phi_A_transposed_mass
 					.dot(getLambda(i, position, speed, coorRot, coorTrans, omegas, inertiaCenter)));
 
-			B.directAdd(khi_transposed.dot(getTau(i, speed, coorRot, omegas)));
+			B.directAdd(khi_transposed.dot(inertiaMatrix.dot(getTau(i, speed, coorRot, omegas))));
 
-			B.directAdd(new Matrix(omegas[i].vecProd(inertiaMatrix.dot(omegas[i]))));
+			B.directAdd(khi_transposed.dot(new Matrix(omegas[i].vecProd(inertiaMatrix.dot(omegas[i])))));
 
 			B.directAdd(
 					khi_transposed_mass_vecprod.dot(getLambda(i, position, speed, coorRot, coorTrans, omegas, attach)));
 		}
-		System.out.println("F: " + F);
+		System.out.println("F: \n" + F);
+		System.out.println("A: \n" + A);
+		System.out.println("B: \n" + B);
 		return A.invert(0.000001).dot(F.sub(B));
 	}
 
@@ -273,17 +331,15 @@ public class Simulation {
 		while (current != order[0]) {
 			int parentID = parent[current];
 			Link link = model.getLinkArr()[parentToLink[current]];
+			Vec3D next = getCoordsInBasis(current, coorRot, coorTrans, link.getAttach(model.getSolidArr()[current]));
 			if (link instanceof TranslationLink transLink) {
 				result = result.add(omegas[parentID].vecProd(coorRot[parentID].dot(transLink.axis))
 						.scale(speed.data[translationIndex[transLink.getID()]][0]));
 			}
 			if (link instanceof RotationLink rotLink) {
-				result = result.add(omegas[parentID].vecProd(coorRot[parentID].dot(rotLink.axis))
-						.vecProd(currentPoint.sub(getCoordsInBasis(current, coorRot, coorTrans,
-								rotLink.getAttach(model.getSolidArr()[current]))))
+				result = result.add(omegas[parentID].vecProd(coorRot[parentID].dot(rotLink.axis)).vecProd(next)
 						.scale(speed.data[translations + rotationIndex[rotLink.getID()]][0]));
 			}
-			Vec3D next = getCoordsInBasis(current, coorRot, coorTrans, link.getAttach(model.getSolidArr()[current]));
 			result = result.add(omegas[current].vecProd(omegas[current].vecProd(previous.sub(next))));
 			previous = next;
 			current = parent[current];

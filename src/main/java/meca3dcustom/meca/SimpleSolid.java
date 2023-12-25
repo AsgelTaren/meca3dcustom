@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -141,6 +142,11 @@ public class SimpleSolid extends Solid {
 		return new SimpleSolid(new Vec3D(0, 0, 0), inertiaMatrix, mass, vertices, colors);
 	}
 
+	public static final SimpleSolid getRectangle(JsonObject data) {
+		return getRectangle(data.get("lx").getAsDouble(), data.get("ly").getAsDouble(), data.get("lz").getAsDouble(),
+				data.get("mass").getAsDouble(), new Color(data.get("color").getAsInt()));
+	}
+
 	public static final SimpleSolid getArc(double r1, double r2, double a, double theta1, double theta2, double mass,
 			int subdiv, Color c) {
 		Vec3D[] points = new Vec3D[(subdiv + 1) * 4];
@@ -171,6 +177,12 @@ public class SimpleSolid extends Solid {
 		colors.add(c);
 
 		return new SimpleSolid(new Vec3D(0, 0, 0), new Matrix(3, 3), mass, vertices, colors);
+	}
+
+	public static final Solid getArc(JsonObject data) {
+		return getArc(data.get("r1").getAsDouble(), data.get("r2").getAsDouble(), data.get("a").getAsDouble(),
+				data.get("theta1").getAsDouble(), data.get("theta2").getAsDouble(), data.get("mass").getAsDouble(),
+				data.get("subdiv").getAsInt(), new Color(data.get("color").getAsInt()));
 	}
 
 	public static final Color scale(Color c, double scale) {

@@ -2,6 +2,8 @@ package meca3dcustom.app;
 
 import java.util.HashMap;
 
+import com.google.gson.JsonObject;
+
 import meca3dcustom.meca.Link;
 import meca3dcustom.meca.Solid;
 import meca3dcustom.meca.SolidWrapper;
@@ -17,6 +19,12 @@ public class Model {
 	public Model() {
 		solids = new HashMap<>();
 		links = new HashMap<>();
+	}
+
+	public Model(JsonObject obj) {
+		solids = new HashMap<>();
+		links = new HashMap<>();
+		JsonObject solidsData = obj.get("solids").getAsJsonObject();
 	}
 
 	public void setup() {

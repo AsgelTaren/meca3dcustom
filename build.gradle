@@ -10,6 +10,8 @@ repositories {
 dependencies {
     implementation 'org.jogamp.jogl:jogl-all-main:2.3.2'
     implementation 'org.jogamp.gluegen:gluegen-rt-main:2.3.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'org.knowm.xchart:xchart:3.8.6'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
 }
 

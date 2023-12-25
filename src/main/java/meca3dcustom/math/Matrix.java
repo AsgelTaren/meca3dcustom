@@ -1,5 +1,7 @@
 package meca3dcustom.math;
 
+import com.google.gson.JsonArray;
+
 public class Matrix {
 
 	public double[][] data;
@@ -8,7 +10,7 @@ public class Matrix {
 		this.data = new double[rows][cols];
 	}
 
-	public Matrix(double[][] data) {
+	public Matrix(double[]... data) {
 		this.data = data;
 	}
 
@@ -19,6 +21,17 @@ public class Matrix {
 				this.data[i][j] = mat.data[i][j];
 			}
 		}
+	}
+
+	public static final Matrix ofJson3x3(JsonArray array) {
+		double[][] data = new double[3][3];
+		for (int i = 0; i < 3; i++) {
+			JsonArray arr = array.get(i).getAsJsonArray();
+			for (int j = 0; j < 3; j++) {
+				data[i][j] = arr.get(j).getAsDouble();
+			}
+		}
+		return new Matrix(data);
 	}
 
 	public Matrix add(Matrix mat) {
@@ -94,6 +107,16 @@ public class Matrix {
 		return new Vec3D(data[0][0] * v.x + data[0][1] * v.y + data[0][2] * v.z,
 				data[1][0] * v.x + data[1][1] * v.y + data[1][2] * v.z,
 				data[2][0] * v.x + data[2][1] * v.y + data[2][2] * v.z);
+	}
+
+	public double max() {
+		double max = data[0][0];
+		for (int i = 0; i < getRows(); i++) {
+			for (int j = 0; j < getCols(); j++) {
+				max = Math.max(max, data[i][j]);
+			}
+		}
+		return max;
 	}
 
 	public Matrix invert(double epsilon) {
@@ -217,7 +240,7 @@ public class Matrix {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < getRows(); i++) {
 			for (int j = 0; j < getCols(); j++) {
-				builder.append(this.data[i][j] + (j == getCols() - 1 ? "" : " "));
+				builder.append(String.format("%.2f", this.data[i][j]) + (j == getCols() - 1 ? "" : " "));
 			}
 			builder.append(i == getRows() - 1 ? "" : "\n");
 		}

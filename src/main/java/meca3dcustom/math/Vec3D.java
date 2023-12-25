@@ -1,5 +1,7 @@
 package meca3dcustom.math;
 
+import com.google.gson.JsonArray;
+
 public class Vec3D {
 
 	public double x, y, z;
@@ -8,6 +10,12 @@ public class Vec3D {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+
+	public Vec3D(JsonArray array) {
+		this.x = array.get(0).getAsDouble();
+		this.y = array.get(1).getAsDouble();
+		this.z = array.get(2).getAsDouble();
 	}
 
 	public Vec3D add(Vec3D v) {

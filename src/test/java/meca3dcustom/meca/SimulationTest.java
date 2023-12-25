@@ -72,4 +72,19 @@ public class SimulationTest {
 				0.000001));
 	}
 
+	@Test
+	@DisplayName("")
+	void validateInertia1() {
+		SolidGroup group = new SolidGroup();
+		group.addSolid(new DefaultSolid(//
+				new Vec3D(1, 2, 3), //
+				new Matrix(//
+						new double[] { 1, 0, 0 }, //
+						new double[] { 0, 2, 0 }, //
+						new double[] { 0, 0, 3 }//
+				), 1), new Vec3D(2, -3, -1), Math.PI / 3, Math.PI / 6, 0);
+		group.setup();
+		System.out.println(group.inertiaMatrix());
+	}
+
 }

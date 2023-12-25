@@ -3,9 +3,12 @@ package meca3dcustom.meca;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 
+import meca3dcustom.app.GlobalModelRegistry;
 import meca3dcustom.math.Matrix;
 import meca3dcustom.math.Vec3D;
 
@@ -18,6 +21,14 @@ public class SolidGroup extends Solid {
 
 	public SolidGroup() {
 		this.parts = new ArrayList<>();
+	}
+
+	public SolidGroup(GlobalModelRegistry registry, JsonObject data) {
+		this.parts = new ArrayList<>();
+		JsonArray array = data.get("solids").getAsJsonArray();
+		for (int i = 0; i < array.size(); i++) {
+			// parts.add();
+		}
 	}
 
 	public void addSolid(Solid solid, Vec3D pos, double rx, double ry, double rz) {
@@ -75,13 +86,11 @@ public class SolidGroup extends Solid {
 		inertiaMatrix = new Matrix(3, 3);
 		for (SolidPart s : parts) {
 			mass += s.solid.getMass();
-			inertiaCenter = inertiaCenter.add(s.solid.inertiaCenter().add(s.pos).scale(s.solid.getMass()));
 			Matrix rot = Matrix.rotMat(new Vec3D(1, 0, 0), s.rx).dot(Matrix.rotMat(new Vec3D(0, 1, 0), s.ry))
 					.dot(Matrix.rotMat(new Vec3D(0, 0, 1), s.rz));
-			inertiaMatrix = inertiaMatrix.add(rot
-					.dot(s.solid.inertiaMatrix()
-							.sub(Matrix.doubleVecProd(s.solid.inertiaCenter().add(s.pos)).scale(s.solid.getMass())))
-					.dot(rot.transpose()));
+			inertiaCenter = inertiaCenter.add(rot.dot(s.solid.inertiaCenter()).add(s.pos).scale(s.solid.getMass()));
+			inertiaMatrix = inertiaMatrix.add(rot.dot(s.solid.inertiaMatrix()).dot(rot.transpose())
+					.sub(Matrix.doubleVecProd(rot.dot(s.solid.inertiaCenter()).add(s.pos)).scale(s.solid.getMass())));
 		}
 		inertiaCenter = inertiaCenter.scale(1.0 / mass);
 	}
