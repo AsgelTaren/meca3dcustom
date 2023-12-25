@@ -39,11 +39,13 @@ public class Matrix {
 		}
 	}
 
-	public Matrix(Vec3D vec) {
-		this.data = new double[3][1];
-		data[0][0] = vec.x;
-		data[1][0] = vec.y;
-		data[2][0] = vec.z;
+	public Matrix(Vec3D... vecs) {
+		this.data = new double[3][vecs.length];
+		for (int i = 0; i < vecs.length; i++) {
+			this.data[0][i] = vecs[i].x;
+			this.data[1][i] = vecs[i].y;
+			this.data[2][i] = vecs[i].z;
+		}
 	}
 
 	public Matrix sub(Matrix mat) {

@@ -64,18 +64,18 @@ public class App implements GLEventListener, KeyListener, MouseListener, MouseMo
 		model.addLink("rot1", new RotationLink(model.getSolids().get("base"), model.getSolids().get("l-piece"),
 				new Vec3D(0.5, 0, 1), new Vec3D(0, 0, 0), new Vec3D(1, 0, 0)));
 
-		SolidGroup arcGroup = new SolidGroup();
-		Solid radioBasis = SimpleSolid.getRectangle(0.75, 1, 0.75, 2, Color.GRAY);
-		// Solid radioPillar = SimpleSolid.getRectangle(0.5, 0.8, 1, 2, Color.MAGENTA);
-
-		arcGroup.addSolid(SimpleSolid.getArc(1, 1.5, 0.5, -Math.PI / 8, Math.PI + Math.PI / 8, 2, 20, Color.BLUE),
-				new Vec3D(0, 0, 0), 90, 0, 90);
-		arcGroup.addSolid(radioBasis, new Vec3D(0, -0.75, 1.25), 0, 0, 0);
-		arcGroup.addSolid(radioBasis, new Vec3D(0, -0.75, -1.25), 0, 0, 0);
-		model.addSolid("arc", arcGroup);
-
-		model.addLink("rot2", new RotationLink(model.getSolids().get("l-piece"), model.getSolids().get("arc"),
-				new Vec3D(4, 0.75, 0), new Vec3D(0, 0, 0), new Vec3D(0, 1, 0)));
+//		SolidGroup arcGroup = new SolidGroup();
+//		Solid radioBasis = SimpleSolid.getRectangle(0.75, 1, 0.75, 2, Color.GRAY);
+//		// Solid radioPillar = SimpleSolid.getRectangle(0.5, 0.8, 1, 2, Color.MAGENTA);
+//
+//		arcGroup.addSolid(SimpleSolid.getArc(1, 1.5, 0.5, -Math.PI / 8, Math.PI + Math.PI / 8, 2, 20, Color.BLUE),
+//				new Vec3D(0, 0, 0), 90, 0, 90);
+//		arcGroup.addSolid(radioBasis, new Vec3D(0, -0.75, 1.25), 0, 0, 0);
+//		arcGroup.addSolid(radioBasis, new Vec3D(0, -0.75, -1.25), 0, 0, 0);
+//		model.addSolid("arc", arcGroup);
+//
+//		model.addLink("rot2", new RotationLink(model.getSolids().get("l-piece"), model.getSolids().get("arc"),
+//				new Vec3D(4, 0.75, 0), new Vec3D(0, 0, 0), new Vec3D(0, 1, 0)));
 
 		model.setBase(model.getSolids().get("base"));
 
@@ -103,8 +103,6 @@ public class App implements GLEventListener, KeyListener, MouseListener, MouseMo
 		gl.glRotatef(beta, 0, 0, 1);
 
 		boolean[] done = new boolean[model.getSolids().size()];
-		((RotationLink) model.getLinks().get("rot1")).rot += 0.6;
-		((RotationLink) model.getLinks().get("rot2")).rot += 0.8;
 		model.getBase().render(drawable, done);
 
 		gl.glEnd(); // Done Drawing The Quad

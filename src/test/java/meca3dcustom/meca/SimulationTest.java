@@ -56,9 +56,20 @@ public class SimulationTest {
 						+ new Vec3D(Math.sqrt(3) + 3, 4 * Math.sqrt(3) - 2, 2 * Math.sqrt(3) + 4)//
 		);
 
-		Matrix gamma = sim.getGamma(sim.getOrder()[2], sim.getPosition(), sim.getSpeed(), sim.getCoorRot(),
-				sim.getCoorTrans(), sim.getOmegas(), new Vec3D(1, 2, 3));
-		System.out.println(gamma);
+		// Validating gamma #1
+		Matrix gamma = sim.getGamma(sim.getOrder()[1], sim.getPosition(), sim.getSpeed(), sim.getCoorRot(),
+				sim.getCoorTrans(), sim.getOmegas(), new Vec3D(3, 2, 4));
+		assertTrue(gamma.equals(
+				new Matrix(new Vec3D(0, -2 - 0.5 * Math.sqrt(3), 2 * Math.sqrt(3) - 0.5), new Vec3D(0, 0, 0)),
+				0.000001));
+		gamma = sim.getGamma(sim.getOrder()[2], sim.getPosition(), sim.getSpeed(), sim.getCoorRot(), sim.getCoorTrans(),
+				sim.getOmegas(), new Vec3D(3, 2, 4));
+
+		// Validating gamma #2
+		assertTrue(gamma.equals(
+				new Matrix(new Vec3D(0, -7.0 / 4.0 * Math.sqrt(3) - 2, 4 * Math.sqrt(3) - 7.0 / 4.0),
+						new Vec3D(-Math.sqrt(3) + 0.5, Math.sqrt(3) / 4 + 0.5, -0.5 * Math.sqrt(3) - 3.0 / 4.0)),
+				0.000001));
 	}
 
 }
